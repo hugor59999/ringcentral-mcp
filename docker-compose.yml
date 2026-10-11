@@ -1,0 +1,63 @@
+# RingCentral MCP — runs alongside an existing n8n stack as its own container.
+#
+# Usage:
+#   docker compose up -d --build ringcentral-mcp
+#   docker compose logs -f ringcentral-mcp
+#
+# See README.md before exposing this to the internet.
+
+services:
+  ringcentral-mcp:
+    build: .
+    image: ringcentral-mcp:latest
+    container_name: ringcentral-mcp
+    restart: unless-stopped
+
+    # All configuration comes from this file. It is NOT baked into the image.
+    env_file:
+      - .env
+
+    # Inside a container both listeners must bind 0.0.0.0. Docker's published
+    # port forwards to the container's eth0 address, so a process bound to the
+    # container's own loopback is unreachable from the host. Confinement comes
+    # from the "127.0.0.1:" host mapping below, which is what restricts these
+    # to the server itself. These override whatever .env says.
+    environment:
+      PLAYBACK_BIND_ADDRESS: "0.0.0.0"
+      MCP_BIND_ADDRESS: "0.0.0.0"
+      # Registered OAuth clients live on the volume below, so reconnecting
+      # ChatGPT is not needed after every restart.
+      OAUTH_CLIENT_STORE_PATH: "/app/data/oauth-clients.json"
+      # Exactly one reverse proxy (nginx) sits in front — see README.md.
+      # Without this, nginx's X-Forwarded-For makes the OAuth endpoints throw
+      # and ChatGPT connects but receives no tools. Raise it only if you add
+      # another proxy in front of nginx.
+      TRUST_PROXY_HOPS: "1"
+
+    # The "127.0.0.1:" prefix is what keeps these on the server itself: only
+    # the host's loopback can reach them, and a reverse proxy terminates HTTPS
+    # in front. Dropping that prefix would publish them on the open internet
+    # unencrypted — do not.
+    ports:
+      - "127.0.0.1:8787:8787"   # recording playback
+      - "127.0.0.1:8788:8788"   # MCP tool endpoint
+
+    # Recordings stream straight through. The only thing written to disk is the
+    # list of OAuth clients that have connected.
+    read_only: true
+    tmpfs:
+      - /tmp
+    volumes:
+      - ringcentral-mcp-data:/app/data
+
+    security_opt:
+      - no-new-privileges:true
+
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+volumes:
+  ringcentral-mcp-data:

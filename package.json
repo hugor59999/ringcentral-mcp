@@ -1,0 +1,38 @@
+{
+  "name": "ringcentral-mcp",
+  "version": "0.1.0",
+  "description": "MCP server for RingCentral (skeleton)",
+  "private": true,
+  "type": "module",
+  "bin": {
+    "ringcentral-mcp": "dist/index.js"
+  },
+  "main": "dist/index.js",
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsx watch src/index.ts",
+    "start": "node dist/index.js",
+    "typecheck": "tsc --noEmit",
+    "clean": "rm -rf dist",
+    "test:auth": "tsx src/scripts/test-auth.ts",
+    "test:tool": "tsx src/scripts/test-tool.ts",
+    "verify": "node dist/scripts/test-auth.js",
+    "test": "tsx --test src/http/oauth/provider.test.ts src/http/mcp-http.test.ts src/ringcentral/client.test.ts src/ringcentral/outbound.test.ts"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "license": "UNLICENSED",
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.30.0",
+    "dotenv": "^17.4.2",
+    "express": "^5.2.1",
+    "zod": "^4.5.4"
+  },
+  "devDependencies": {
+    "@types/express": "^5.0.6",
+    "@types/node": "^26.4.1",
+    "tsx": "^4.23.13",
+    "typescript": "^7.0.2"
+  }
+}

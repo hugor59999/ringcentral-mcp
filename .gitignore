@@ -1,0 +1,25 @@
+# Dependencies
+node_modules/
+
+# Build output
+dist/
+
+# Runtime state — registered OAuth clients
+data/
+
+# Environment / secrets
+.env
+.env.local
+.env.*.local
+# Backups taken during a key rotation hold the previous secrets, so they must
+# never be committable — the patterns above do not match them.
+.env.backup*
+.env.bak
+.env.*.backup
+
+# Logs
+*.log
+npm-debug.log*
+
+# OS
+.DS_Store
